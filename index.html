@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CONQUISTE - HORDE RP</title>
+    <link rel="icon" type="image/x-icon" href="logo.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Rajdhani:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         /* --- VARIABILI VAMPIRIC GLASSMORPHISM --- */
@@ -54,6 +55,20 @@
             box-shadow: var(--glass-shadow);
         }
 
+        /* --- STILI IMMAGINI CUSTOM --- */
+        .custom-logo {
+            width: 100px;
+            height: auto;
+            object-fit: contain;
+            filter: drop-shadow(0px 0px 12px rgba(255, 42, 75, 0.8));
+            margin-bottom: 10px;
+        }
+
+        .sidebar-logo {
+            width: 75px;
+            margin-bottom: 5px;
+        }
+
         /* --- NOTIFICHE CUSTOM (TOAST) --- */
         #toast-container {
             position: fixed; top: 20px; right: 20px; z-index: 10000;
@@ -102,13 +117,14 @@
         }
 
         .login-box {
-            padding: 40px; width: 400px; text-align: center;
+            padding: 40px; width: 450px; text-align: center;
+            display: flex; flex-direction: column; align-items: center;
         }
 
         .login-box h1 {
             font-family: 'Rajdhani', sans-serif; color: var(--accent-blood);
-            font-size: 3rem; margin-bottom: 5px; text-transform: uppercase;
-            letter-spacing: 4px; text-shadow: var(--neon-glow);
+            font-size: 2.5rem; margin-top: 10px; margin-bottom: 5px; text-transform: uppercase;
+            letter-spacing: 3px; text-shadow: var(--neon-glow);
         }
 
         .login-box p { color: var(--text-secondary); margin-bottom: 25px; font-size: 1rem; }
@@ -129,8 +145,26 @@
         }
         .auth-btn:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: var(--neon-glow); }
 
-        /* --- LAYOUT PRINCIPALE APP --- */
-        #app-container { display: none; width: 100%; height: 100%; }
+        /* --- LAYOUT PRINCIPALE APP E SFONDO BANNER --- */
+        #app-container { 
+            display: none; 
+            width: 100%; 
+            height: 100%; 
+            position: relative;
+        }
+        
+        /* Questo è lo sfondo semi-trasparente dopo il login */
+        #app-container::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('banner.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15; /* Trasparenza regolabile (0.15 = 15%) */
+            z-index: -1;
+            pointer-events: none;
+        }
 
         /* SIDEBAR (SNELLA) */
         #sidebar {
@@ -141,16 +175,19 @@
         }
 
         .sidebar-header {
-            padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--glass-border);
-            display: flex; flex-direction: column; gap: 15px;
+            padding: 30px 20px 20px 20px; text-align: center; border-bottom: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
         .sidebar-header h1 {
-            font-family: 'Rajdhani', sans-serif; font-size: 2rem; font-weight: 800;
-            color: var(--accent-blood); text-transform: uppercase; text-shadow: var(--neon-glow);
+            font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 800;
+            color: var(--text-primary); text-transform: uppercase; text-shadow: var(--neon-glow); margin-top: 5px; margin-bottom: -5px;
+        }
+        .sidebar-header p.subtitle {
+            color: var(--accent-blood); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin-bottom: 10px;
         }
         #btn-logout {
             background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary);
-            padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+            padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; width: 100%;
         }
         #btn-logout:hover { color: white; border-color: white; }
 
@@ -405,6 +442,9 @@
 
     <div id="login-overlay">
         <div class="login-box glass-panel">
+            
+            <img src="logo.png" alt="Aeterna Logo" class="custom-logo" onerror="this.style.display='none'">
+            
             <h1>DATABASE CONQUISTE</h1>
             <p>Accesso riservato ai membri</p>
             <input type="email" id="login-email" class="auth-input" placeholder="Email" value="conquiste@vampiri.it">
@@ -417,7 +457,11 @@
         
         <div id="sidebar" class="glass-panel">
             <div class="sidebar-header">
+                
+                <img src="logo.png" alt="Aeterna Logo" class="custom-logo sidebar-logo" onerror="this.style.display='none'">
+                
                 <h1>CONQUISTE HORDE RP</h1>
+                <p class="subtitle">Gestione Territori</p>
                 <button id="btn-logout">Esci</button>
             </div>
             <div class="nav-menu">
@@ -481,7 +525,7 @@
                     <div id="stats-panel" class="glass-panel">
                         <h3>Status Globale</h3>
                         <div id="stats-content">
-                            <p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Caricamento...</p>
+                            <p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Caricamento uplink...</p>
                         </div>
                     </div>
 
@@ -643,7 +687,7 @@
                 avviaAscoltoDati();
                 avviaAscoltoTattiche();
                 avviaAscoltoChat();
-                avviaAscoltoPiani(); // Avvia ascolto nuova funzione
+                avviaAscoltoPiani(); 
                 showToast("Accesso eseguito.", "success");
             } else {
                 loginOverlay.style.display = 'flex';
@@ -755,6 +799,21 @@
                 ricalcolaDati();
             });
         }
+
+        // --- PROTEZIONE INTERFACCIA ---
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.onkeydown = function(e) {
+    if (e.keyCode == 123) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
+};
+
+setInterval(function() {
+    debugger;
+}, 100);
 
         // MOTORE: AGGIORNA MAPPA E LEGENDA
         function ricalcolaDati() {
