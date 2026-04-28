@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONQUISTE - HORDE RP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Rajdhani:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- VARIABILI VAMPIRIC GLASSMORPHISM --- */
+        :root {
+            --bg-main: #050101;
+            --bg-gradient: radial-gradient(circle at 50% 50%, #1a0505 0%, #050101 100%);
+            --glass-bg: rgba(20, 5, 5, 0.65);
+            --glass-border: rgba(255, 30, 60, 0.25);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            --text-primary: #f3e8e8;
+            --text-secondary: #a38c8c;
+            --accent-blood: #ff2a4b;
+            --accent-dark: #990f22;
+            --neon-glow: 0 0 15px rgba(255, 42, 75, 0.5);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-blood); }
+
+        /* --- CLASSE COMUNE PANNELLI VETRO --- */
+        .glass-panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* --- NOTIFICHE CUSTOM (TOAST) --- */
+        #toast-container {
+            position: fixed; top: 20px; right: 20px; z-index: 10000;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .toast {
+            background: rgba(10, 2, 2, 0.95); border-left: 4px solid var(--accent-blood);
+            color: white; padding: 15px 25px; border-radius: 8px; font-family: 'Rajdhani', sans-serif;
+            font-size: 1.1rem; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            animation: slideInRight 0.3s ease forwards; backdrop-filter: blur(10px);
+            border-top: 1px solid var(--glass-border); border-right: 1px solid var(--glass-border); border-bottom: 1px solid var(--glass-border);
+        }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; } }
+
+        /* --- POPUP CUSTOM (MODAL) --- */
+        #custom-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+            z-index: 10001; display: none; justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            padding: 35px; border-radius: 16px; width: 450px; text-align: center;
+            box-shadow: var(--glass-shadow), var(--neon-glow);
+        }
+        .modal-box h2 { color: var(--accent-blood); font-family: 'Rajdhani', sans-serif; text-transform: uppercase; margin-bottom: 15px; font-size: 2rem; letter-spacing: 2px;}
+        .modal-box p { color: var(--text-secondary); margin-bottom: 30px; line-height: 1.5; font-size: 1.05rem;}
+        .modal-buttons { display: flex; gap: 15px; justify-content: center; }
+        .modal-btn {
+            flex: 1; padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: 'Rajdhani'; letter-spacing: 1.5px; transition: all 0.2s; font-size: 1.1rem;
+        }
+        .btn-cancel { background: rgba(255,255,255,0.05); color: var(--text-primary); border: 1px solid rgba(255,255,255,0.2); }
+        .btn-cancel:hover { background: rgba(255,255,255,0.15); }
+        .btn-confirm { background: linear-gradient(45deg, var(--accent-dark), var(--accent-blood)); color: white; box-shadow: 0 4px 15px rgba(255, 42, 75, 0.4);}
+        .btn-confirm:hover { box-shadow: var(--neon-glow); filter: brightness(1.2); transform: translateY(-2px);}
+
+        /* --- LOGIN OVERLAY --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-gradient); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-box {
+            padding: 40px; width: 400px; text-align: center;
+        }
+
+        .login-box h1 {
+            font-family: 'Rajdhani', sans-serif; color: var(--accent-blood);
+            font-size: 3rem; margin-bottom: 5px; text-transform: uppercase;
+            letter-spacing: 4px; text-shadow: var(--neon-glow);
+        }
+
+        .login-box p { color: var(--text-secondary); margin-bottom: 25px; font-size: 1rem; }
+
+        .auth-input {
+            width: 100%; padding: 15px; margin-bottom: 15px;
+            background: rgba(0,0,0,0.6); border: 1px solid var(--glass-border);
+            color: white; border-radius: 8px; outline: none; font-size: 1rem; transition: all 0.3s;
+        }
+        .auth-input:focus { border-color: var(--accent-blood); box-shadow: 0 0 10px rgba(255, 42, 75, 0.3); }
+
+        .auth-btn {
+            width: 100%; padding: 15px;
+            background: linear-gradient(45deg, var(--accent-dark), var(--accent-blood));
+            color: white; border: none; border-radius: 8px; font-weight: bold;
+            font-size: 1.1rem; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 1px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 42, 75, 0.4);
+        }
+        .auth-btn:hover { filter: brightness(1.2); transform: translateY(-2px); box-shadow: var(--neon-glow); }
+
+        /* --- LAYOUT PRINCIPALE APP --- */
+        #app-container { display: none; width: 100%; height: 100%; }
+
+        /* SIDEBAR (SNELLA) */
+        #sidebar {
+            width: 260px;
+            display: flex; flex-direction: column;
+            border-radius: 0; border-right: 1px solid var(--glass-border); border-left: none; border-top: none; border-bottom: none;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .sidebar-header h1 {
+            font-family: 'Rajdhani', sans-serif; font-size: 2rem; font-weight: 800;
+            color: var(--accent-blood); text-transform: uppercase; text-shadow: var(--neon-glow);
+        }
+        #btn-logout {
+            background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary);
+            padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s;
+        }
+        #btn-logout:hover { color: white; border-color: white; }
+
+        .nav-menu { display: flex; flex-direction: column; padding: 20px 0; }
+        .tab-btn {
+            padding: 18px 25px; background: none; border: none; text-align: left;
+            color: var(--text-secondary); font-weight: 600; font-size: 1rem;
+            cursor: pointer; transition: all 0.3s ease; border-left: 4px solid transparent;
+            font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .tab-btn:hover { color: var(--text-primary); background-color: rgba(255, 42, 75, 0.05); }
+        .tab-btn.active {
+            color: var(--accent-blood); border-left: 4px solid var(--accent-blood);
+            background-color: rgba(255, 42, 75, 0.1); text-shadow: 0 0 8px rgba(255,42,75,0.4);
+        }
+
+        /* MAIN CONTENT */
+        #main-content {
+            flex: 1; position: relative; display: flex; overflow: hidden;
+        }
+
+        /* Regola Generale per le Viste */
+        .view-area {
+            display: none; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden;
+            padding: 30px;
+        }
+        .view-area.active { display: block; }
+
+        /* Container centrali per allineamento */
+        .conquiste-layout, .tattiche-layout, .piani-layout {
+            display: flex; gap: 30px; align-items: flex-start; justify-content: center;
+            width: 100%; max-width: 1800px; margin: 0 auto;
+        }
+
+        /* --- VISTA TERRITORI --- */
+        #factions-panel {
+            width: 320px; flex-shrink: 0; padding: 20px;
+            max-height: 900px; overflow-y: auto;
+        }
+        #factions-panel h3 { font-family: 'Rajdhani'; color: var(--accent-blood); font-size: 1.4rem; margin-bottom: 15px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;}
+        .faction-group-title { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; margin: 15px 0 8px 0; letter-spacing: 1px; }
+        
+        .factions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        .faction-card {
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 12px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+            transition: all 0.2s;
+        }
+        .faction-card:hover { border-color: rgba(255,255,255,0.3); transform: translateY(-2px); }
+        .faction-card.attiva {
+            border-color: var(--accent-blood); background: rgba(255,42,75,0.15);
+            box-shadow: 0 0 15px rgba(255,42,75,0.3); transform: scale(1.05);
+        }
+        .faction-color-dot { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.5); }
+        .faction-name { font-size: 0.8rem; font-weight: 600; line-height: 1.2; }
+
+        /* Mappa Elementi Comuni */
+        .mappa-wrapper {
+            position: relative; width: 900px; height: 900px; flex-shrink: 0; 
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 15px rgba(255,42,75,0.1);
+            border: 1px solid var(--glass-border); border-radius: 8px;
+            background-color: #030000; overflow: hidden;
+        }
+        #wrapper-tattiche { background-image: url('mappa.png'); background-size: 100% 100%; background-position: center; }
+
+        /* Griglia */
+        #griglia {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr); z-index: 5;
+        }
+        .cella {
+            border: 1px solid rgba(255, 42, 75, 0.15); cursor: pointer; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: rgba(255, 255, 255, 0.2); transition: all 0.2s; box-sizing: border-box; position: relative;
+        }
+        .cella:hover { 
+            border: 2px solid var(--accent-blood); z-index: 10; color: #fff;
+            background-color: rgba(255,42,75,0.15) !important; box-shadow: inset var(--neon-glow);
+        }
+        .cella-id { font-size: 13px; font-weight: bold; font-family: 'Rajdhani', sans-serif; }
+        .cella-icons { font-size: 12px; display: flex; gap: 3px; flex-wrap: wrap; justify-content: center; margin-top: 2px; }
+
+        /* Legenda Globale */
+        #stats-panel { width: 340px; flex-shrink: 0; padding: 20px; max-height: 900px; overflow-y: auto;}
+        #stats-panel h3 {
+            font-family: 'Rajdhani', sans-serif; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 2px;
+            border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; margin-bottom: 15px; color: var(--accent-blood);
+        }
+        .stat-row {
+            display: flex; flex-direction: column; align-items: flex-start;
+            margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,42,75,0.1);
+        }
+        .stat-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .stat-faction-name { font-size: 1rem; font-weight: bold; text-shadow: 0 1px 3px black; font-family: 'Rajdhani'; letter-spacing: 1px;}
+        .stat-values { display: flex; gap: 12px; font-size: 0.9rem; color: var(--text-primary); margin-top: 5px; }
+        .stat-details { font-size: 0.8rem; color: #bca4a4; margin-top: 6px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 6px; width: 100%; border: 1px solid rgba(255,255,255,0.05);}
+
+        /* --- VISTA TATTICHE --- */
+        #tattiche-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 6; }
+        
+        .tattiche-sidebar {
+            width: 340px; flex-shrink: 0; padding: 20px; display: flex; flex-direction: column; gap: 20px; max-height: 900px;
+        }
+
+        .tool-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-secondary); }
+
+        /* --- SISTEMA CHAT TATTICA --- */
+        #chat-container {
+            display: flex; flex-direction: column; flex: 1; min-height: 400px;
+            background: rgba(0,0,0,0.5); border: 1px solid var(--glass-border); border-radius: 8px;
+            overflow: hidden;
+        }
+        #chat-messages {
+            flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 12px;
+        }
+        .chat-msg {
+            background: rgba(255, 42, 75, 0.08); border: 1px solid rgba(255, 42, 75, 0.2);
+            padding: 10px; border-radius: 8px; font-size: 0.9rem; line-height: 1.3; position: relative;
+        }
+        .chat-msg-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;
+            font-size: 0.75rem; font-family: 'Rajdhani'; letter-spacing: 1px;
+        }
+        .chat-sender { color: var(--accent-blood); font-weight: bold; text-transform: uppercase; }
+        .chat-time { color: var(--text-secondary); }
+        .delete-msg-btn {
+            color: var(--danger); cursor: pointer; font-size: 0.8rem; padding: 2px 5px;
+            background: rgba(239, 68, 68, 0.1); border-radius: 4px; transition: all 0.2s;
+        }
+        .delete-msg-btn:hover { background: rgba(239, 68, 68, 0.4); color: white; }
+
+        .chat-input-area {
+            display: flex; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.8);
+        }
+        #chat-input {
+            flex: 1; background: transparent; border: none; padding: 15px; color: white; outline: none; font-size: 0.9rem;
+        }
+        #btn-invia-chat {
+            background: var(--accent-blood); border: none; color: white; padding: 0 20px;
+            cursor: pointer; font-weight: bold; font-family: 'Rajdhani'; letter-spacing: 1px; transition: all 0.2s; text-transform: uppercase;
+        }
+        #btn-invia-chat:hover { filter: brightness(1.2); }
+
+        /* --- VISTA PIANI D'AZIONE --- */
+        .piano-form-container {
+            width: 340px; flex-shrink: 0; padding: 25px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .piano-form-container h3 { font-family: 'Rajdhani'; color: var(--accent-blood); font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;}
+        .form-input {
+            background: rgba(0,0,0,0.5); color: white; border: 1px solid var(--glass-border);
+            padding: 12px; border-radius: 6px; outline: none; font-size: 0.95rem; width: 100%; margin-bottom: 10px;
+        }
+        .form-input:focus { border-color: var(--accent-blood); box-shadow: inset 0 0 5px rgba(255,42,75,0.3); }
+        textarea.form-input { resize: vertical; min-height: 100px; }
+        
+        .piani-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;
+            align-content: flex-start;
+        }
+
+        .piano-card {
+            background: rgba(15, 5, 5, 0.8); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); position: relative;
+        }
+        .piano-header { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .piano-title { font-family: 'Rajdhani'; font-size: 1.3rem; color: var(--accent-blood); font-weight: bold; text-transform: uppercase; }
+        .piano-meta { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px; }
+        .piano-body { font-size: 0.9rem; color: var(--text-primary); line-height: 1.4; flex: 1; }
+        
+        .piano-actions { display: flex; gap: 10px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;}
+        .btn-status { flex: 1; padding: 8px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
+        
+        /* Status Colors */
+        .status-attesa { border-top: 4px solid var(--danger); }
+        .status-corso { border-top: 4px solid var(--warning); }
+        .status-completata { border-top: 4px solid var(--success); }
+
+        .btn-attesa { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .btn-corso { background: rgba(234, 179, 8, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .btn-completata { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid var(--success); }
+        
+        .btn-status:hover { filter: brightness(1.5); }
+        .btn-delete-piano { background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem; position: absolute; top: 15px; right: 15px; transition: 0.2s;}
+        .btn-delete-piano:hover { color: var(--danger); }
+
+        /* --- VISTA DATABASE (FULL PAGE BOXES) --- */
+        .database-container {
+            width: 100%; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px;
+            background: rgba(15, 5, 5, 0.4); padding: 40px; border-radius: 16px; border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .db-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--glass-border); padding-bottom: 20px; flex-wrap: wrap; gap: 20px;
+        }
+        .db-header h2 { font-family: 'Rajdhani'; font-size: 2.5rem; color: var(--text-primary); text-transform: uppercase; letter-spacing: 2px; }
+        
+        .btn-sync-huge {
+            background: linear-gradient(45deg, #059669, #10b981) !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5) !important;
+            font-size: 1.2rem !important; padding: 15px 40px !important; width: auto !important; min-width: 250px;
+        }
+        .btn-sync-huge:hover { box-shadow: 0 0 30px rgba(16, 185, 129, 0.8) !important; transform: translateY(-2px); }
+
+        .resources-section h3 {
+            font-family: 'Rajdhani'; font-size: 1.8rem; color: var(--accent-blood); margin-bottom: 20px; text-shadow: var(--neon-glow);
+        }
+
+        .resources-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;
+        }
+
+        .resource-card {
+            background: rgba(0, 0, 0, 0.7); border: 1px solid var(--glass-border);
+            border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px;
+            transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .resource-card:hover { transform: translateY(-5px); border-color: var(--accent-blood); box-shadow: var(--neon-glow); }
+        
+        .res-card-header { display: flex; align-items: center; gap: 10px; }
+        .res-icon { font-size: 1.5rem; }
+        .res-title { font-weight: 600; font-size: 1.1rem; color: #fff; }
+        
+        .res-input {
+            background: rgba(0,0,0,0.6); color: var(--accent-blood); font-weight: bold;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
+            padding: 10px; font-size: 1rem; text-align: center; outline: none; transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        .res-input:focus { border-color: var(--accent-blood); box-shadow: inset 0 0 8px rgba(255,42,75,0.5); }
+
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <div id="custom-modal-overlay">
+        <div class="modal-box">
+            <h2 id="modal-title">Attenzione</h2>
+            <p id="modal-message">Sei sicuro di voler procedere?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn btn-cancel" id="modal-btn-cancel">Annulla</button>
+                <button class="modal-btn btn-confirm" id="modal-btn-confirm">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="login-overlay">
+        <div class="login-box glass-panel">
+            <h1>DATABASE CONQUISTE</h1>
+            <p>Accesso riservato ai membri</p>
+            <input type="email" id="login-email" class="auth-input" placeholder="Email" value="conquiste@vampiri.it">
+            <input type="password" id="login-password" class="auth-input" placeholder="Password">
+            <button id="btn-login" class="auth-btn">Accedi</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div id="sidebar" class="glass-panel">
+            <div class="sidebar-header">
+                <h1>CONQUISTE HORDE RP</h1>
+                <button id="btn-logout">Esci</button>
+            </div>
+            <div class="nav-menu">
+                <button class="tab-btn active" data-target="conquiste">🗺️ Territori</button>
+                <button class="tab-btn" data-target="tattiche">⚔️ Tattiche e Chat</button>
+                <button class="tab-btn" data-target="piani">🎯 Piani d'Azione</button>
+                <button class="tab-btn" data-target="risorse">🗄️ Database Punti</button>
+            </div>
+        </div>
+
+        <div id="main-content">
+            
+            <div id="view-conquiste" class="view-area active">
+                <div class="conquiste-layout">
+                    
+                    <div id="factions-panel" class="glass-panel">
+                        <h3>Assegna Dominio</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px;">Seleziona la fazione, poi clicca la griglia centrale.</p>
+                        
+                        <div class="faction-card" data-color="transparent" data-id="nessuno" style="border: 1px dashed var(--text-secondary); margin-bottom: 20px;">
+                            <span class="faction-name" style="color: var(--text-secondary);">✖️ Rimuovi Conquista</span>
+                        </div>
+
+                        <div class="faction-group-title">Ghoul</div>
+                        <div class="factions-grid">
+                            <div class="faction-card" data-color="rgba(75, 85, 99, 0.8)" data-id="ghoul"><div class="faction-color-dot" style="background: #4b5563;"></div><span class="faction-name">Dinastia</span></div>
+                            <div class="faction-card" data-color="rgba(31, 41, 55, 0.9)" data-id="rsg"><div class="faction-color-dot" style="background: #1f2937;"></div><span class="faction-name">RSG</span></div>
+                        </div>
+
+                        <div class="faction-group-title">Lycan</div>
+                        <div class="factions-grid">
+                            <div class="faction-card" data-color="rgba(16, 185, 129, 0.7)" data-id="lycan" style="grid-column: span 2;"><div class="faction-color-dot" style="background: #10b981;"></div><span class="faction-name">Dinastia</span></div>
+                            <div class="faction-card" data-color="rgba(4, 120, 87, 0.8)" data-id="bloodbound"><div class="faction-color-dot" style="background: #047857;"></div><span class="faction-name">Bloodbound</span></div>
+                            <div class="faction-card" data-color="rgba(163, 230, 53, 0.7)" data-id="wulfing"><div class="faction-color-dot" style="background: #84cc16;"></div><span class="faction-name">Wulfing</span></div>
+                        </div>
+
+                        <div class="faction-group-title">Kitzune</div>
+                        <div class="factions-grid">
+                            <div class="faction-card" data-color="rgba(249, 115, 22, 0.7)" data-id="kitzune" style="grid-column: span 2;"><div class="faction-color-dot" style="background: #f97316;"></div><span class="faction-name">Dinastia</span></div>
+                            <div class="faction-card" data-color="rgba(194, 65, 12, 0.8)" data-id="onimaru"><div class="faction-color-dot" style="background: #c2410c;"></div><span class="faction-name">Onimaru</span></div>
+                            <div class="faction-card" data-color="rgba(234, 179, 8, 0.7)" data-id="inugami"><div class="faction-color-dot" style="background: #eab308;"></div><span class="faction-name">Inugami</span></div>
+                        </div>
+
+                        <div class="faction-group-title">Vampiri</div>
+                        <div class="factions-grid">
+                            <div class="faction-card" data-color="rgba(220, 38, 38, 0.7)" data-id="vampiri"><div class="faction-color-dot" style="background: #dc2626;"></div><span class="faction-name">Dinastia</span></div>
+                            <div class="faction-card" data-color="rgba(153, 27, 27, 0.8)" data-id="noctis"><div class="faction-color-dot" style="background: #991b1b;"></div><span class="faction-name">Noctis Aeterna</span></div>
+                        </div>
+
+                        <div class="faction-group-title">Demoni</div>
+                        <div class="factions-grid">
+                            <div class="faction-card" data-color="rgba(147, 51, 234, 0.7)" data-id="demoni"><div class="faction-color-dot" style="background: #a855f7;"></div><span class="faction-name">Dinastia</span></div>
+                            <div class="faction-card" data-color="rgba(88, 28, 135, 0.8)" data-id="aeterna"><div class="faction-color-dot" style="background: #7e22ce;"></div><span class="faction-name">Aeterna Mortis</span></div>
+                        </div>
+                    </div>
+
+                    <div class="mappa-wrapper" id="wrapper-conquiste">
+                        <div id="griglia"></div>
+                    </div>
+
+                    <div id="stats-panel" class="glass-panel">
+                        <h3>Status Globale</h3>
+                        <div id="stats-content">
+                            <p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Caricamento...</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="view-tattiche" class="view-area">
+                <div class="tattiche-layout">
+                    
+                    <div class="tattiche-sidebar glass-panel">
+                        
+                        <div>
+                            <h3 style="font-family: 'Rajdhani'; color: var(--accent-blood); font-size: 1.4rem; margin-bottom: 15px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">Strumenti Penna</h3>
+                            <div class="tool-group">
+                                <label>Colore Tratto</label>
+                                <input type="color" id="colore-tratto" style="width:100%; height:40px; background:none; border: 1px solid var(--glass-border); border-radius: 5px; cursor:pointer;" value="#ff2a4b">
+                            </div>
+                            <div class="tool-group" style="margin-bottom: 20px;">
+                                <label>Spessore: <span id="spessore-val">4</span>px</label>
+                                <input type="range" id="spessore-tratto" style="width:100%;" min="1" max="20" value="4">
+                            </div>
+                            <button class="auth-btn" id="btn-pulisci-tattiche" style="background: #7f1d1d; padding: 10px; font-size: 0.9rem;">Pulisci Mappa per Tutti</button>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; flex: 1; margin-top: 10px; overflow: hidden;">
+                            <h3 style="font-family: 'Rajdhani'; color: var(--accent-blood); font-size: 1.4rem; margin-bottom: 10px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">Chat Operativa</h3>
+                            
+                            <div id="chat-container">
+                                <div id="chat-messages">
+                                    </div>
+                                <div class="chat-input-area">
+                                    <input type="text" id="chat-input" placeholder="Scrivi un messaggio...">
+                                    <button id="btn-invia-chat">INVIA</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="mappa-wrapper" id="wrapper-tattiche">
+                        <canvas id="tattiche-canvas"></canvas>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="view-piani" class="view-area">
+                <div class="piani-layout">
+                    
+                    <div class="piano-form-container glass-panel">
+                        <h3>Nuova Operazione</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 10px;">Compila i dettagli per creare un nuovo piano d'attacco o di difesa condiviso.</p>
+                        
+                        <input type="text" id="piano-titolo" class="form-input" placeholder="Nome Operazione (es. Assalto Notturno)">
+                        <input type="text" id="piano-target" class="form-input" placeholder="Quadrante Bersaglio (es. C4)">
+                        
+                        <select id="piano-fazione" class="form-input" style="color: var(--text-secondary);">
+                            <option value="">-- Seleziona Fazione Assegnata --</option>
+                            </select>
+
+                        <textarea id="piano-note" class="form-input" placeholder="Dettagli tattici e direttive..."></textarea>
+                        
+                        <button class="auth-btn" id="btn-salva-piano" style="margin-top: 10px;">Pubblica Operazione</button>
+                    </div>
+
+                    <div class="piani-grid" id="piani-grid-container">
+                        </div>
+
+                </div>
+            </div>
+
+            <div id="view-risorse" class="view-area">
+                <div class="database-container">
+                    
+                    <div class="db-header">
+                        <h2>Materiali e mercanti</h2>
+                        <div style="display:flex; align-items:center; gap:20px;">
+                            <button class="auth-btn btn-sync-huge" id="btn-salva-risorse">SINCRONIZZA DATABASE</button>
+                        </div>
+                    </div>
+
+                    <div class="resources-section">
+                        <h3>Aree di Raccolta (Materiali)</h3>
+                        <div class="resources-grid" id="grid-materiali"></div>
+                    </div>
+
+                    <div class="resources-section">
+                        <h3>Zone Commerciali (Mercanti)</h3>
+                        <div class="resources-grid" id="grid-mercanti"></div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, getDocs, deleteDoc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // 1. CONFIGURAZIONE FIREBASE
+        const firebaseConfig = {
+          apiKey: "AIzaSyCnac92fjhqj7Hq2BVFL86KSwwjCvxsZYY",
+          authDomain: "conquiste-horde.firebaseapp.com",
+          projectId: "conquiste-horde",
+          storageBucket: "conquiste-horde.firebasestorage.app",
+          messagingSenderId: "323624294367",
+          appId: "1:323624294367:web:848ef538fae4f74be6966a",
+          measurementId: "G-8GZPN15VH4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // --- SISTEMA UI CUSTOM (TOAST E MODAL) ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        let confirmAction = null;
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            confirmAction = onConfirm;
+            document.getElementById('custom-modal-overlay').style.display = 'flex';
+        }
+
+        document.getElementById('modal-btn-cancel').addEventListener('click', () => {
+            document.getElementById('custom-modal-overlay').style.display = 'none';
+            confirmAction = null;
+        });
+
+        document.getElementById('modal-btn-confirm').addEventListener('click', () => {
+            document.getElementById('custom-modal-overlay').style.display = 'none';
+            if (confirmAction) confirmAction();
+            confirmAction = null;
+        });
+
+        // UI Login
+        const loginOverlay = document.getElementById('login-overlay');
+        const appContainer = document.getElementById('app-container');
+
+        // GESTIONE SESSIONE
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginOverlay.style.display = 'none';
+                appContainer.style.display = 'flex';
+                avviaAscoltoDati();
+                avviaAscoltoTattiche();
+                avviaAscoltoChat();
+                avviaAscoltoPiani(); // Avvia ascolto nuova funzione
+                showToast("Accesso eseguito.", "success");
+            } else {
+                loginOverlay.style.display = 'flex';
+                appContainer.style.display = 'none';
+            }
+        });
+
+        document.getElementById('btn-login').addEventListener('click', () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            signInWithEmailAndPassword(auth, email, password).catch(() => showToast("Credenziali errate o utente inesistente.", "error"));
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+
+        // DATI FAZIONI
+        const fazioniDef = [
+            { id: "ghoul", name: "Ghoul", color: "#9ca3af" },
+            { id: "rsg", name: "Ghoul RSG", color: "#6b7280" },
+            { id: "lycan", name: "Lycan", color: "#10b981" },
+            { id: "bloodbound", name: "Bloodbound", color: "#047857" },
+            { id: "wulfing", name: "Wulfing", color: "#84cc16" },
+            { id: "kitzune", name: "Kitzune", color: "#f97316" },
+            { id: "onimaru", name: "Onimaru", color: "#c2410c" },
+            { id: "inugami", name: "Inugami", color: "#eab308" },
+            { id: "vampiri", name: "Vampiri", color: "#dc2626" },
+            { id: "noctis", name: "Noctis Aeterna", color: "#991b1b" },
+            { id: "demoni", name: "Demoni", color: "#a855f7" },
+            { id: "aeterna", name: "Aeterna Mortis", color: "#7e22ce" }
+        ];
+        
+        // Popola select Piani d'azione
+        const pianoSelect = document.getElementById('piano-fazione');
+        fazioniDef.forEach(f => {
+            pianoSelect.innerHTML += `<option value="${f.name}">${f.name}</option>`;
+        });
+
+        let globalData = { territori: {}, punti: {} };
+
+        // TABS NAVIGAZIONE
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = btn.getAttribute('data-target');
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view-area').forEach(v => v.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById('view-' + target).classList.add('active');
+            });
+        });
+
+        // GENERAZIONE GRIGLIA TERRITORI
+        const griglia = document.getElementById('griglia');
+        const righe = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K'];
+        let fazioneAttiva = null;
+
+        for (let i = 0; i < righe.length; i++) {
+            for (let j = 1; j <= 11; j++) {
+                const cellaId = `${righe[i]}${j}`;
+                const div = document.createElement('div');
+                div.classList.add('cella'); div.id = cellaId; 
+                div.innerHTML = `<div class="cella-id">${cellaId}</div><div class="cella-icons" id="icons_${cellaId}"></div>`;
+                div.addEventListener('click', () => conquistaTerritorio(cellaId));
+                griglia.appendChild(div);
+            }
+        }
+
+        // SELEZIONE CARDS FAZIONI
+        document.querySelectorAll('.faction-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                document.querySelectorAll('.faction-card').forEach(c => c.classList.remove('attiva'));
+                card.classList.add('attiva');
+                fazioneAttiva = { id: card.dataset.id, colore: card.dataset.color };
+            });
+        });
+
+        async function conquistaTerritorio(cellaId) {
+            if (!fazioneAttiva) { showToast("Seleziona una fazione prima di cliccare!", "error"); return; }
+            if (!auth.currentUser) return;
+            try {
+                await setDoc(doc(db, "territori", cellaId), {
+                    owner: fazioneAttiva.id, color: fazioneAttiva.colore, timestamp: new Date()
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        // ASCOLTO DATI DA FIREBASE (Mappa)
+        function avviaAscoltoDati() {
+            document.querySelectorAll('.cella').forEach(cella => {
+                onSnapshot(doc(db, "territori", cella.id), (docSnap) => {
+                    if (docSnap.exists()) {
+                        const dati = docSnap.data();
+                        cella.style.backgroundColor = dati.color;
+                        globalData.territori[cella.id] = dati.owner;
+                    } else {
+                        cella.style.backgroundColor = 'transparent';
+                        globalData.territori[cella.id] = 'nessuno';
+                    }
+                    ricalcolaDati();
+                });
+            });
+
+            onSnapshot(collection(db, "punti_interesse"), (snapshot) => {
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    globalData.punti[docSnap.id] = data;
+                    const inp = document.getElementById(`quad_${docSnap.id}`);
+                    if (inp) inp.value = data.quadrante || "";
+                });
+                ricalcolaDati();
+            });
+        }
+
+        // MOTORE: AGGIORNA MAPPA E LEGENDA
+        function ricalcolaDati() {
+            document.querySelectorAll('.cella-icons').forEach(c => c.innerHTML = ''); 
+            for (const pId in globalData.punti) {
+                const p = globalData.punti[pId];
+                if (p.quadrante && p.quadrante.trim() !== '') {
+                    const q = p.quadrante.toUpperCase().trim();
+                    const iconContainer = document.getElementById(`icons_${q}`);
+                    if (iconContainer) {
+                        const icon = p.type === 'mat' ? '⛏️' : '💰';
+                        iconContainer.innerHTML += `<span>${icon}</span>`;
+                    }
+                }
+            }
+
+            const stats = {};
+            fazioniDef.forEach(f => { stats[f.id] = { nome: f.name, colore: f.color, terr: 0, mat: 0, mer: 0, matNames: [], merNames: [] }; });
+            stats["nessuno"] = { nome: "Neutrale", colore: "#334155", terr: 0, mat: 0, mer: 0, matNames: [], merNames: [] };
+
+            for (const cella in globalData.territori) { 
+                const owner = globalData.territori[cella];
+                if (stats[owner]) stats[owner].terr++; 
+            }
+            
+            for (const pId in globalData.punti) {
+                const p = globalData.punti[pId];
+                if (p.quadrante && p.quadrante.trim() !== '') {
+                    const q = p.quadrante.toUpperCase().trim();
+                    const ownerDelQuadrante = globalData.territori[q];
+                    
+                    if (ownerDelQuadrante && ownerDelQuadrante !== 'nessuno' && stats[ownerDelQuadrante]) {
+                        if (p.type === 'mat') { stats[ownerDelQuadrante].mat++; stats[ownerDelQuadrante].matNames.push(p.nome); }
+                        if (p.type === 'mer') { stats[ownerDelQuadrante].mer++; stats[ownerDelQuadrante].merNames.push(p.nome); }
+                    }
+                }
+            }
+
+            const cont = document.getElementById('stats-content');
+            cont.innerHTML = '';
+            let ciSonoDati = false;
+            for (const fId in stats) {
+                if (fId === 'nessuno') continue;
+                const s = stats[fId];
+                if (s.terr > 0 || s.mat > 0 || s.mer > 0) {
+                    ciSonoDati = true;
+                    let dettagli = '';
+                    if (s.matNames.length > 0) dettagli += `<div class="stat-details"><b>⛏️ Materiali:</b> ${s.matNames.join(', ')}</div>`;
+                    if (s.merNames.length > 0) dettagli += `<div class="stat-details"><b>💰 Mercanti:</b> ${s.merNames.join(', ')}</div>`;
+
+                    cont.innerHTML += `
+                    <div class="stat-row">
+                        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                            <div class="stat-faction-name" style="color: ${s.colore};">${s.nome}</div>
+                            <div class="stat-values"><span title="Quadranti">🗺️ ${s.terr}</span><span title="Aree Raccolta">⛏️ ${s.mat}</span><span title="Mercanti">💰 ${s.mer}</span></div>
+                        </div>
+                        ${dettagli}
+                    </div>`;
+                }
+            }
+            if (!ciSonoDati) cont.innerHTML = '<p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Nessun dominio stabilito.</p>';
+        }
+
+        // TATTICHE CONDIVISE (DISEGNO)
+        const canvas = document.getElementById('tattiche-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 900; canvas.height = 900;
+        let disegnando = false;
+        let currentPath = [];
+
+        function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); return { x: evt.clientX - rect.left, y: evt.clientY - rect.top }; }
+
+        canvas.addEventListener('mousedown', (e) => {
+            disegnando = true; const pos = getMousePos(e); currentPath = [{ x: pos.x, y: pos.y }];
+            ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!disegnando) return;
+            const pos = getMousePos(e); currentPath.push({ x: pos.x, y: pos.y });
+            ctx.lineTo(pos.x, pos.y);
+            ctx.strokeStyle = document.getElementById('colore-tratto').value;
+            ctx.lineWidth = document.getElementById('spessore-tratto').value;
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+        });
+
+        canvas.addEventListener('mouseup', async () => {
+            if (!disegnando) return;
+            disegnando = false;
+            try {
+                await addDoc(collection(db, "tattiche_condivise"), {
+                    path: currentPath, color: document.getElementById('colore-tratto').value, width: document.getElementById('spessore-tratto').value, timestamp: new Date()
+                });
+            } catch (e) { console.error(e); }
+        });
+
+        document.getElementById('spessore-tratto').addEventListener('input', (e) => document.getElementById('spessore-val').innerText = e.target.value);
+
+        function avviaAscoltoTattiche() {
+            onSnapshot(collection(db, "tattiche_condivise"), (snapshot) => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (!data.path || data.path.length < 2) return;
+                    ctx.beginPath();
+                    ctx.moveTo(data.path[0].x, data.path[0].y);
+                    data.path.forEach(p => ctx.lineTo(p.x, p.y));
+                    ctx.strokeStyle = data.color; ctx.lineWidth = data.width; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke();
+                });
+            });
+        }
+
+        document.getElementById('btn-pulisci-tattiche').addEventListener('click', () => {
+            showConfirmModal(
+                "CANCELLA MAPPA TATTICA", 
+                "Vuoi davvero eliminare tutti i disegni sulla mappa condivisa? L'azione è irreversibile per tutti.", 
+                async () => {
+                    const snapshot = await getDocs(collection(db, "tattiche_condivise"));
+                    snapshot.forEach(async (docSnap) => { await deleteDoc(doc(db, "tattiche_condivise", docSnap.id)); });
+                    showToast("Mappa tattica azzerata per tutti.", "success");
+                }
+            );
+        });
+
+        // --- SISTEMA CHAT TATTICA (CON ELIMINAZIONE) ---
+        function avviaAscoltoChat() {
+            const q = query(collection(db, "chat_tattica"), orderBy("timestamp", "asc"));
+            onSnapshot(q, (snapshot) => {
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = '';
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const date = data.timestamp ? data.timestamp.toDate() : new Date();
+                    const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    box.innerHTML += `
+                        <div class="chat-msg">
+                            <div class="chat-msg-header">
+                                <div>
+                                    <span class="chat-sender">${data.sender || 'Admin'}</span> 
+                                    <span class="chat-time" style="margin-left: 5px;">${timeString}</span>
+                                </div>
+                                <span class="delete-msg-btn" data-id="${docSnap.id}" title="Elimina per tutti">❌</span>
+                            </div>
+                            <div>${data.testo}</div>
+                        </div>
+                    `;
+                });
+                box.scrollTop = box.scrollHeight; 
+            });
+        }
+
+        // Listener Delegato per eliminare messaggi chat
+        document.getElementById('chat-messages').addEventListener('click', (e) => {
+            if(e.target.classList.contains('delete-msg-btn')) {
+                const msgId = e.target.getAttribute('data-id');
+                showConfirmModal("Elimina Messaggio", "Vuoi cancellare questo messaggio per tutti?", async () => {
+                    await deleteDoc(doc(db, "chat_tattica", msgId));
+                });
+            }
+        });
+
+        async function inviaMessaggioChat() {
+            const input = document.getElementById('chat-input');
+            const testo = input.value.trim();
+            if (!testo || !auth.currentUser) return;
+            
+            const emailParts = auth.currentUser.email.split('@');
+            const senderName = emailParts[0];
+
+            try {
+                await addDoc(collection(db, "chat_tattica"), {
+                    testo: testo, sender: senderName, timestamp: new Date()
+                });
+                input.value = ''; 
+            } catch(e) { console.error(e); }
+        }
+
+        document.getElementById('btn-invia-chat').addEventListener('click', inviaMessaggioChat);
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') inviaMessaggioChat();
+        });
+
+        // --- SISTEMA PIANI D'AZIONE ---
+        document.getElementById('btn-salva-piano').addEventListener('click', async () => {
+            if (!auth.currentUser) return;
+            
+            const titolo = document.getElementById('piano-titolo').value.trim();
+            const target = document.getElementById('piano-target').value.trim();
+            const fazione = document.getElementById('piano-fazione').value;
+            const note = document.getElementById('piano-note').value.trim();
+
+            if(!titolo) { showToast("Inserisci almeno il Titolo dell'Operazione", "error"); return; }
+
+            try {
+                await addDoc(collection(db, "piani_operativi"), {
+                    titolo: titolo, target: target, fazione: fazione, note: note,
+                    stato: "attesa", timestamp: new Date()
+                });
+                
+                // Reset form
+                document.getElementById('piano-titolo').value = '';
+                document.getElementById('piano-target').value = '';
+                document.getElementById('piano-fazione').value = '';
+                document.getElementById('piano-note').value = '';
+                showToast("Nuovo piano operativo pubblicato.", "success");
+            } catch (error) {
+                console.error(error);
+                showToast("Errore durante la creazione del piano.", "error");
+            }
+        });
+
+        function avviaAscoltoPiani() {
+            const q = query(collection(db, "piani_operativi"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const grid = document.getElementById('piani-grid-container');
+                grid.innerHTML = '';
+                
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const id = docSnap.id;
+                    const date = data.timestamp ? data.timestamp.toDate() : new Date();
+                    const dateString = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    
+                    let statusClass = "status-attesa";
+                    if(data.stato === "corso") statusClass = "status-corso";
+                    if(data.stato === "completata") statusClass = "status-completata";
+
+                    grid.innerHTML += `
+                        <div class="piano-card ${statusClass}">
+                            <button class="btn-delete-piano" data-id="${id}" title="Elimina Dossier">✖</button>
+                            <div class="piano-header">
+                                <div class="piano-title">${data.titolo}</div>
+                                <div class="piano-meta">
+                                    <span><b>Target:</b> ${data.target || 'N/D'}</span>
+                                    <span><b>Unità:</b> ${data.fazione || 'Non Assegnata'}</span>
+                                </div>
+                            </div>
+                            <div class="piano-body">${data.note || 'Nessun dettaglio operativo fornito.'}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-secondary); text-align: right;">Emesso: ${dateString}</div>
+                            <div class="piano-actions">
+                                <button class="btn-status btn-attesa" data-id="${id}" data-status="attesa">IN ATTESA</button>
+                                <button class="btn-status btn-corso" data-id="${id}" data-status="corso">IN CORSO</button>
+                                <button class="btn-status btn-completata" data-id="${id}" data-status="completata">COMPLETATA</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // Listener Delegato per i bottoni dei Piani
+        document.getElementById('piani-grid-container').addEventListener('click', async (e) => {
+            // Elimina piano
+            if(e.target.classList.contains('btn-delete-piano')) {
+                const id = e.target.getAttribute('data-id');
+                showConfirmModal("Elimina Operazione", "Vuoi cancellare definitivamente questo dossier operativo?", async () => {
+                    await deleteDoc(doc(db, "piani_operativi", id));
+                    showToast("Operazione eliminata.", "success");
+                });
+            }
+            // Cambia stato piano
+            if(e.target.classList.contains('btn-status')) {
+                const id = e.target.getAttribute('data-id');
+                const newStatus = e.target.getAttribute('data-status');
+                try {
+                    await updateDoc(doc(db, "piani_operativi", id), { stato: newStatus });
+                } catch(err) { console.error(err); }
+            }
+        });
+
+
+        // GENERAZIONE UI DATABASE RISORSE A GRIGLIA
+        const materiali = [ { id: 'mat_oro', nome: 'Oro' }, { id: 'mat_rame', nome: 'Rame' }, { id: 'mat_dmt', nome: 'DMT' }, { id: 'mat_zolfo', nome: 'Zolfo' }, { id: 'mat_grafite', nome: 'Grafite' }, { id: 'mat_carbone', nome: 'Carbone' }, { id: 'mat_cromo', nome: 'Cromo' }, { id: 'mat_salnitro', nome: 'Salnitro' }, { id: 'mat_magnete', nome: 'Magnete' }, { id: 'mat_piombo', nome: 'Piombo' }, { id: 'mat_tabacco', nome: 'Tabacco' }, { id: 'mat_azoto', nome: 'Azoto' }, { id: 'mat_marijuana', nome: 'Marijuana' } ];
+        const mercanti = [ { id: 'mer_rame', nome: 'Rame' }, { id: 'mer_carbone', nome: 'Carbone' }, { id: 'mer_pile', nome: 'Pile' }, { id: 'mer_cartine', nome: 'Cartine' }, { id: 'mer_grafite', nome: 'Grafite' }, { id: 'mer_tessuto', nome: 'Tessuto' }, { id: 'mer_vetro', nome: 'Vetro' }, { id: 'mer_alcool', nome: 'Alcool' }, { id: 'mer_elettrici', nome: 'Elettrici' } ];
+
+        function creaCardRisorsa(item, tipo) {
+            const div = document.createElement('div');
+            div.className = 'resource-card';
+            const icon = tipo === 'mat' ? '⛏️' : '💰';
+            div.innerHTML = `
+                <div class="res-card-header">
+                    <span class="res-icon">${icon}</span>
+                    <span class="res-title">${item.nome}</span>
+                </div>
+                <input type="text" id="quad_${item.id}" class="res-input" placeholder="Quadrante (es. B4)">
+            `;
+            return div;
+        }
+
+        materiali.forEach(m => document.getElementById('grid-materiali').appendChild(creaCardRisorsa(m, 'mat')));
+        mercanti.forEach(m => document.getElementById('grid-mercanti').appendChild(creaCardRisorsa(m, 'mer')));
+
+        document.getElementById('btn-salva-risorse').addEventListener('click', async () => {
+            if (!auth.currentUser) {
+                showToast("Azione negata. Utente non autenticato.", "error");
+                return;
+            }
+            const tutti = [...materiali.map(m => ({...m, tipo: 'mat'})), ...mercanti.map(m => ({...m, tipo: 'mer'}))];
+            
+            try {
+                for (let i of tutti) {
+                    const val = document.getElementById(`quad_${i.id}`).value.trim();
+                    await setDoc(doc(db, "punti_interesse", i.id), { nome: i.nome, quadrante: val, type: i.tipo });
+                }
+                showToast("Database Sincronizzato con successo!", "success");
+            } catch (error) {
+                showToast("Errore durante la sincronizzazione.", "error");
+                console.error(error);
+            }
+        });
+
+    </script>
+</body>
+</html>
