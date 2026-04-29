@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestionale Conquiste | Horde Rp</title>
+    <title>CONQUISTE - HORDE RP</title>
     <link rel="icon" type="image/x-icon" href="logo.ico">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Rajdhani:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
@@ -72,11 +72,6 @@
             object-fit: contain;
             filter: drop-shadow(0px 0px 12px rgba(255, 42, 75, 0.8));
             margin-bottom: 10px;
-        }
-
-        .sidebar-logo {
-            width: 75px;
-            margin-bottom: 5px;
         }
 
         /* --- NOTIFICHE CUSTOM (TOAST) --- */
@@ -161,57 +156,55 @@
             width: 100%; 
             height: 100%; 
             position: relative;
+            flex-direction: column; /* NavBar sopra, Main Content sotto */
         }
         
         #app-container::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('banner.png');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.15;
-            z-index: -1;
-            pointer-events: none;
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('banner.png'); background-size: cover; background-position: center;
+            opacity: 0.15; z-index: -1; pointer-events: none;
         }
 
-        /* SIDEBAR (SNELLA) */
-        #sidebar {
-            width: 260px;
-            display: flex; flex-direction: column;
-            border-radius: 0; border-right: 1px solid var(--glass-border); border-left: none; border-top: none; border-bottom: none;
-            z-index: 10;
+        /* --- MENU DI NAVIGAZIONE SUPERIORE (TOPBAR) --- */
+        #topbar {
+            display: flex; flex-direction: row; justify-content: space-between; align-items: center;
+            border-radius: 0; border-bottom: 1px solid var(--glass-border); border-left: none; border-right: none; border-top: none;
+            z-index: 10; background: rgba(20, 5, 5, 0.85); backdrop-filter: blur(12px); padding: 0 30px; flex-shrink: 0;
         }
 
-        .sidebar-header {
-            padding: 30px 20px 20px 20px; text-align: center; border-bottom: 1px solid var(--glass-border);
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
+        .topbar-header {
+            display: flex; align-items: center; gap: 15px; padding: 10px 0;
         }
-        .sidebar-header h1 {
-            font-family: 'Rajdhani', sans-serif; font-size: 1.5rem; font-weight: 800;
-            color: var(--text-primary); text-transform: uppercase; text-shadow: var(--neon-glow); margin-top: 5px; margin-bottom: -5px;
+        .topbar-header img { width: 50px; margin: 0; filter: drop-shadow(0px 0px 8px rgba(255, 42, 75, 0.8)); }
+        .topbar-header-text h1 {
+            font-family: 'Rajdhani', sans-serif; font-size: 1.6rem; font-weight: 800;
+            color: var(--text-primary); text-transform: uppercase; text-shadow: var(--neon-glow); margin: 0;
         }
-        .sidebar-header p.subtitle {
-            color: var(--accent-blood); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin-bottom: 10px;
+        .topbar-header-text p.subtitle {
+            color: var(--accent-blood); font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; margin: 0;
         }
-        #btn-logout {
-            background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary);
-            padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; width: 100%;
-        }
-        #btn-logout:hover { color: white; border-color: white; }
-
-        .nav-menu { display: flex; flex-direction: column; padding: 20px 0; }
+        
+        .nav-menu { display: flex; flex-direction: row; padding: 0; height: 100%; }
         .tab-btn {
-            padding: 18px 25px; background: none; border: none; text-align: left;
+            padding: 25px 20px; background: none; border: none; text-align: center;
             color: var(--text-secondary); font-weight: 600; font-size: 1rem;
-            cursor: pointer; transition: all 0.3s ease; border-left: 4px solid transparent;
+            cursor: pointer; transition: all 0.3s ease; border-bottom: 4px solid transparent;
             font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; text-transform: uppercase;
         }
         .tab-btn:hover { color: var(--text-primary); background-color: rgba(255, 42, 75, 0.05); }
         .tab-btn.active {
-            color: var(--accent-blood); border-left: 4px solid var(--accent-blood);
+            color: var(--accent-blood); border-bottom: 4px solid var(--accent-blood);
             background-color: rgba(255, 42, 75, 0.1); text-shadow: 0 0 8px rgba(255,42,75,0.4);
         }
+
+        .topbar-actions { display: flex; align-items: center; }
+        #btn-logout {
+            background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary);
+            padding: 8px 20px; border-radius: 6px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+            font-family: 'Rajdhani', sans-serif; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
+        }
+        #btn-logout:hover { color: white; border-color: var(--accent-blood); background: rgba(255,42,75,0.2); box-shadow: var(--neon-glow); }
+
 
         /* MAIN CONTENT */
         #main-content {
@@ -487,20 +480,22 @@
 
     <div id="app-container">
         
-        <div id="sidebar" class="glass-panel">
-            <div class="sidebar-header">
-                
-                <img src="logo.png" alt="Aeterna Logo" class="custom-logo sidebar-logo" onerror="this.style.display='none'">
-                
-                <h1>CONQUISTE HORDE RP</h1>
-                <p class="subtitle">Gestione Territori</p>
-                <button id="btn-logout">Esci</button>
+        <div id="topbar" class="glass-panel">
+            <div class="topbar-header">
+                <img src="logo.png" alt="Aeterna Logo" class="custom-logo topbar-logo" onerror="this.style.display='none'">
+                <div class="topbar-header-text">
+                    <h1>CONQUISTE HORDE RP</h1>
+                    <p class="subtitle">Gestione Territori</p>
+                </div>
             </div>
             <div class="nav-menu">
                 <button class="tab-btn active" data-target="conquiste">🗺️ Territori</button>
                 <button class="tab-btn" data-target="tattiche">⚔️ Tattiche e Chat</button>
                 <button class="tab-btn" data-target="piani">🎯 Piani d'Azione</button>
-                <button class="tab-btn" data-target="risorse">🗄️ Database Punti</button>
+                <button class="tab-btn" data-target="risorse">🗄️ Database</button>
+            </div>
+            <div class="topbar-actions">
+                <button id="btn-logout">Esci dal Sistema</button>
             </div>
         </div>
 
@@ -641,10 +636,16 @@
                 <div class="database-container">
                     
                     <div class="db-header">
-                        <h2>Materiali e mercanti</h2>
+                        <h2>Gestione Database Punti</h2>
                         <div style="display:flex; align-items:center; gap:20px;">
                             <button class="auth-btn btn-sync-huge" id="btn-salva-risorse">SINCRONIZZA DATABASE</button>
                         </div>
+                    </div>
+                    
+                    <div class="resources-section">
+                        <h3>💍 Anelli delle Dinastie</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">Imposta qui il numero di partenza o aggiungi anelli. Scenderanno automaticamente alla conquista.</p>
+                        <div class="resources-grid" id="grid-anelli"></div>
                     </div>
 
                     <div class="resources-section">
@@ -665,7 +666,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, getDocs, deleteDoc, updateDoc, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, getDocs, deleteDoc, updateDoc, query, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         // 1. CONFIGURAZIONE FIREBASE
@@ -746,6 +747,21 @@
             });
         }
 
+        // --- PROTEZIONE INTERFACCIA ---
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.onkeydown = function(e) {
+    if (e.keyCode == 123) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
+};
+
+setInterval(function() {
+    debugger;
+}, 100);
+
         // UI Login
         const loginOverlay = document.getElementById('login-overlay');
         const appContainer = document.getElementById('app-container');
@@ -797,7 +813,7 @@
             pianoSelect.innerHTML += `<option value="${f.name}">${f.name}</option>`;
         });
 
-        let globalData = { territori: {}, punti: {} };
+        let globalData = { territori: {}, punti: {}, anelli: {} };
 
         // TABS NAVIGAZIONE
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -843,9 +859,17 @@
             if (oldOwnerId === fazioneAttiva.id) return; // Stessa fazione, nessun cambiamento
 
             try {
+                // Aggiorna Territorio
                 await setDoc(doc(db, "territori", cellaId), {
                     owner: fazioneAttiva.id, color: fazioneAttiva.colore, timestamp: new Date()
                 });
+
+                // Auto-deduzione anello (solo se la fazione non è Nessuno)
+                if (fazioneAttiva.id !== 'nessuno') {
+                    await setDoc(doc(db, "sistema", "anelli"), {
+                        [fazioneAttiva.id]: increment(-1)
+                    }, { merge: true });
+                }
 
                 // Costruzione Log Conquista
                 const nomeNuova = fazioneAttiva.id === 'nessuno' ? 'Territorio Reso Neutrale' : (fazioniDef.find(f => f.id === fazioneAttiva.id)?.name || fazioneAttiva.id);
@@ -878,8 +902,9 @@
             } catch (e) { console.error(e); }
         }
 
-        // ASCOLTO DATI DA FIREBASE (Mappa)
+        // ASCOLTO DATI DA FIREBASE
         function avviaAscoltoDati() {
+            // Ascolto territori
             document.querySelectorAll('.cella').forEach(cella => {
                 onSnapshot(doc(db, "territori", cella.id), (docSnap) => {
                     if (docSnap.exists()) {
@@ -894,6 +919,7 @@
                 });
             });
 
+            // Ascolto punti interesse
             onSnapshot(collection(db, "punti_interesse"), (snapshot) => {
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
@@ -901,6 +927,23 @@
                     const inp = document.getElementById(`quad_${docSnap.id}`);
                     if (inp) inp.value = data.quadrante || "";
                 });
+                ricalcolaDati();
+            });
+
+            // Ascolto Anelli
+            onSnapshot(doc(db, "sistema", "anelli"), (docSnap) => {
+                if (docSnap.exists()) {
+                    globalData.anelli = docSnap.data();
+                    // Aggiorna gli input nella vista Database
+                    fazioniDef.forEach(f => {
+                        if (f.id !== 'nessuno') {
+                            const inp = document.getElementById(`anelli_${f.id}`);
+                            if (inp) inp.value = globalData.anelli[f.id] || 0;
+                        }
+                    });
+                } else {
+                    globalData.anelli = {};
+                }
                 ricalcolaDati();
             });
         }
@@ -921,8 +964,15 @@
             }
 
             const stats = {};
-            fazioniDef.forEach(f => { stats[f.id] = { nome: f.name, colore: f.color, terr: 0, mat: 0, mer: 0, matNames: [], merNames: [] }; });
-            stats["nessuno"] = { nome: "Neutrale", colore: "#334155", terr: 0, mat: 0, mer: 0, matNames: [], merNames: [] };
+            fazioniDef.forEach(f => { 
+                stats[f.id] = { 
+                    nome: f.name, colore: f.color, 
+                    terr: 0, mat: 0, mer: 0, 
+                    anelli: globalData.anelli[f.id] || 0,
+                    matNames: [], merNames: [] 
+                }; 
+            });
+            stats["nessuno"] = { nome: "Neutrale", colore: "#334155", terr: 0, mat: 0, mer: 0, anelli: 0, matNames: [], merNames: [] };
 
             for (const cella in globalData.territori) { 
                 const owner = globalData.territori[cella];
@@ -944,7 +994,7 @@
 
             let classifica = [];
             for (const fId in stats) {
-                if (fId !== 'nessuno' && (stats[fId].terr > 0 || stats[fId].mat > 0 || stats[fId].mer > 0)) {
+                if (fId !== 'nessuno' && (stats[fId].terr > 0 || stats[fId].mat > 0 || stats[fId].mer > 0 || stats[fId].anelli > 0)) {
                     classifica.push(stats[fId]);
                 }
             }
@@ -988,6 +1038,7 @@
                             ${medaglia} ${s.nome}
                         </div>
                         <div class="stat-values">
+                            <span title="Anelli">💍 <b>${s.anelli}</b></span>
                             <span title="Quadranti">🗺️ <b>${s.terr}</b></span>
                             <span title="Aree Raccolta">⛏️ ${s.mat}</span>
                             <span title="Mercanti">💰 ${s.mer}</span>
@@ -1207,7 +1258,7 @@
         });
 
 
-        // GENERAZIONE UI DATABASE RISORSE A GRIGLIA
+        // GENERAZIONE UI DATABASE RISORSE E ANELLI A GRIGLIA
         const materiali = [ { id: 'mat_oro', nome: 'Oro' }, { id: 'mat_rame', nome: 'Rame' }, { id: 'mat_dmt', nome: 'DMT' }, { id: 'mat_zolfo', nome: 'Zolfo' }, { id: 'mat_grafite', nome: 'Grafite' }, { id: 'mat_carbone', nome: 'Carbone' }, { id: 'mat_cromo', nome: 'Cromo' }, { id: 'mat_salnitro', nome: 'Salnitro' }, { id: 'mat_magnete', nome: 'Magnete' }, { id: 'mat_piombo', nome: 'Piombo' }, { id: 'mat_tabacco', nome: 'Tabacco' }, { id: 'mat_azoto', nome: 'Azoto' }, { id: 'mat_marijuana', nome: 'Marijuana' } ];
         const mercanti = [ { id: 'mer_rame', nome: 'Rame' }, { id: 'mer_carbone', nome: 'Carbone' }, { id: 'mer_pile', nome: 'Pile' }, { id: 'mer_cartine', nome: 'Cartine' }, { id: 'mer_grafite', nome: 'Grafite' }, { id: 'mer_tessuto', nome: 'Tessuto' }, { id: 'mer_vetro', nome: 'Vetro' }, { id: 'mer_alcool', nome: 'Alcool' }, { id: 'mer_elettrici', nome: 'Elettrici' } ];
 
@@ -1225,8 +1276,25 @@
             return div;
         }
 
+        function creaCardAnello(fazione) {
+            const div = document.createElement('div');
+            div.className = 'resource-card';
+            div.innerHTML = `
+                <div class="res-card-header">
+                    <span class="res-icon" style="text-shadow: 0 0 10px rgba(255,255,255,0.5);">💍</span>
+                    <span class="res-title" style="color: ${fazione.color};">${fazione.name}</span>
+                </div>
+                <input type="number" id="anelli_${fazione.id}" class="res-input" placeholder="Q.tà" value="0">
+            `;
+            return div;
+        }
+
         materiali.forEach(m => document.getElementById('grid-materiali').appendChild(creaCardRisorsa(m, 'mat')));
         mercanti.forEach(m => document.getElementById('grid-mercanti').appendChild(creaCardRisorsa(m, 'mer')));
+        
+        fazioniDef.forEach(f => {
+            if(f.id !== 'nessuno') document.getElementById('grid-anelli').appendChild(creaCardAnello(f));
+        });
 
         document.getElementById('btn-salva-risorse').addEventListener('click', async () => {
             if (!auth.currentUser) {
@@ -1236,11 +1304,23 @@
             const tutti = [...materiali.map(m => ({...m, tipo: 'mat'})), ...mercanti.map(m => ({...m, tipo: 'mer'}))];
             
             try {
+                // Salva Materiali e Mercanti
                 for (let i of tutti) {
                     const val = document.getElementById(`quad_${i.id}`).value.trim();
                     await setDoc(doc(db, "punti_interesse", i.id), { nome: i.nome, quadrante: val, type: i.tipo });
                 }
-                logActivity(`🗄️ Il Database Punti di Interesse è stato sincronizzato.`);
+
+                // Salva Anelli
+                const anelliDaSalvare = {};
+                fazioniDef.forEach(f => {
+                    if (f.id !== 'nessuno') {
+                        const val = parseInt(document.getElementById(`anelli_${f.id}`).value) || 0;
+                        anelliDaSalvare[f.id] = val;
+                    }
+                });
+                await setDoc(doc(db, "sistema", "anelli"), anelliDaSalvare, { merge: true });
+
+                logActivity(`🗄️ Il Database Generale (Punti e Anelli) è stato sincronizzato.`);
                 showToast("Database Sincronizzato con successo!", "success");
             } catch (error) {
                 showToast("Errore durante la sincronizzazione.", "error");
