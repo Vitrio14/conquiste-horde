@@ -463,6 +463,17 @@
                             </table>
                         </div>
                     </div>
+
+                    <div class="glass-panel" style="max-width:900px; margin:30px auto 0; padding:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                            <h3 style="margin:0;">📜 Registro movimenti utenti</h3>
+                            <input type="text" id="search-admin-log" class="form-input" placeholder="Filtra per utente o azione..." style="max-width:280px; margin:0;">
+                        </div>
+                        <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;">Tutte le azioni degli utenti vengono registrate su Firestore in tempo reale.</p>
+                        <div id="admin-activity-log" style="max-height:420px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;">
+                            <p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Caricamento log...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

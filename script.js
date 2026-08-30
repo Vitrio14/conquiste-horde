@@ -52,48 +52,92 @@ document.getElementById('modal-btn-confirm').addEventListener('click', () => {
 // --- SISTEMA LOG OPERATIVO ---
 async function logActivity(message) {
     if (!currentUser && !auth.currentUser) return;
+    const utente = currentUser ? currentUser.nome : (auth.currentUser?.email || "Sconosciuto");
     try {
         await addDoc(collection(db, "activity_log"), {
             testo: message,
+            utente: utente,
             timestamp: new Date()
         });
     } catch (e) { console.error("Errore log:", e); }
 }
 
+let activityLogCache = [];
+
+function renderAdminActivityLog(filter = "") {
+    const adminBox = document.getElementById('admin-activity-log');
+    if (!adminBox) return;
+    const f = (filter || "").toLowerCase();
+    const filtered = activityLogCache.filter(item => {
+        if (!f) return true;
+        return (item.testo || "").toLowerCase().includes(f) || (item.utente || "").toLowerCase().includes(f);
+    });
+    if (filtered.length === 0) {
+        adminBox.innerHTML = '<p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Nessun movimento trovato.</p>';
+        return;
+    }
+    adminBox.innerHTML = filtered.map(item => {
+        const date = item.timestamp ? item.timestamp.toDate() : new Date();
+        const timeString = date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        return `
+            <div class="log-item">
+                <span class="log-time">[${timeString}] · ${item.utente || '—'}</span>
+                <div style="margin-top:4px;">${item.testo}</div>
+            </div>
+        `;
+    }).join('');
+}
+
 function avviaAscoltoLog() {
-    const q = query(collection(db, "activity_log"), orderBy("timestamp", "desc"), limit(50));
+    const q = query(collection(db, "activity_log"), orderBy("timestamp", "desc"), limit(100));
     onSnapshot(q, (snapshot) => {
-        const box = document.getElementById('activity-log-content');
-        if(!box) return;
-        box.innerHTML = '';
+        activityLogCache = [];
         snapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            const date = data.timestamp ? data.timestamp.toDate() : new Date();
-            const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            box.innerHTML += `
-                <div class="log-item">
-                    <span class="log-time">[${timeString}]</span><br>
-                    ${data.testo}
-                </div>
-            `;
+            activityLogCache.push({ id: docSnap.id, ...docSnap.data() });
         });
+
+        // Log laterale Territori
+        const box = document.getElementById('activity-log-content');
+        if (box) {
+            box.innerHTML = '';
+            activityLogCache.slice(0, 50).forEach((data) => {
+                const date = data.timestamp ? data.timestamp.toDate() : new Date();
+                const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                box.innerHTML += `
+                    <div class="log-item">
+                        <span class="log-time">[${timeString}]${data.utente ? ' · ' + data.utente : ''}</span><br>
+                        ${data.testo}
+                    </div>
+                `;
+            });
+        }
+
+        // Log completo in Gestione
+        const searchVal = document.getElementById('search-admin-log')?.value || '';
+        renderAdminActivityLog(searchVal);
     });
 }
 
-// // --- PROTEZIONE INTERFACCIA ---
-// document.addEventListener('contextmenu', event => event.preventDefault());
+// Filtro log in gestione
+document.getElementById('search-admin-log')?.addEventListener('input', (e) => {
+    renderAdminActivityLog(e.target.value);
+});
 
-// document.onkeydown = function(e) {
-//     if (e.keyCode == 123) return false; 
-//     if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
-//     if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
-//     if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
-//     if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
-// };
 
-// setInterval(function() {
-//     debugger;
-// }, 100);
+// --- PROTEZIONE INTERFACCIA ---
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.onkeydown = function(e) {
+    if (e.keyCode == 123) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
+    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
+};
+
+setInterval(function() {
+    debugger;
+}, 100);
 
 // UI Login
 const loginOverlay = document.getElementById('login-overlay');
@@ -181,6 +225,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
         startAllListeners();
         applyPermissions();
         showToast(`Benvenuto, ${currentUser.nome}.`, "success");
+        logActivity(`🔑 Accesso effettuato.`);
         document.getElementById('login-codice').value = '';
         document.getElementById('login-password').value = '';
     } catch (e) {
@@ -222,6 +267,7 @@ onAuthStateChanged(auth, (user) => {
         const tabG = document.getElementById('tab-gestione');
         if (tabG) { tabG.style.display = ''; tabG.click(); }
         showToast("Accesso Gestore eseguito.", "success");
+        logActivity(`🔑 Accesso Gestore effettuato.`);
     } else if (!user && currentUser && currentUser.isAdmin) {
         // logout gestore
         currentUser = null;
@@ -284,6 +330,7 @@ document.getElementById('admin-utenti-body')?.addEventListener('click', async (e
     if (delId) {
         showConfirmModal("Elimina utente", "Vuoi eliminare questo utente?", async () => {
             await deleteDoc(doc(db, "membri", delId));
+            logActivity(`🗑️ Utente <b>${delId}</b> eliminato.`);
             showToast("Utente eliminato.", "success");
         });
     }
@@ -317,6 +364,7 @@ document.getElementById('btn-salva-utente')?.addEventListener('click', async () 
     if (password) data.password = password;
 
     await setDoc(doc(db, "membri", nome), data, { merge: true });
+    logActivity(`👤 Utente <b>${nome}</b> creato/aggiornato (permessi: ${permessi.join(', ')}).`);
     document.getElementById('admin-user-nome').value = '';
     document.getElementById('admin-user-grado').value = '';
     document.getElementById('admin-user-codice').value = '';
