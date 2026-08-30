@@ -73,16 +73,22 @@ function renderAdminActivityLog(filter = "") {
         return (item.testo || "").toLowerCase().includes(f) || (item.utente || "").toLowerCase().includes(f);
     });
     if (filtered.length === 0) {
-        adminBox.innerHTML = '<p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Nessun movimento trovato.</p>';
+        adminBox.innerHTML = '<p style="font-size:0.8rem; color:var(--text-secondary); text-align:center;">Nessun movimento utente trovato.</p>';
         return;
     }
+    // GESTIONE: audit utenti — chi ha fatto cosa
     adminBox.innerHTML = filtered.map(item => {
         const date = item.timestamp ? item.timestamp.toDate() : new Date();
         const timeString = date.toLocaleDateString('it-IT') + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        const chi = item.utente || 'Sconosciuto';
         return `
             <div class="log-item">
-                <span class="log-time">[${timeString}] · ${item.utente || '—'}</span>
-                <div style="margin-top:4px;">${item.testo}</div>
+                <span class="log-time">[${timeString}]</span>
+                <div style="margin-top:4px;">
+                    <b style="color:var(--accent-gold);">${chi}</b>
+                    <span style="color:var(--text-secondary);"> ha eseguito:</span>
+                    <div style="margin-top:4px;">${item.testo}</div>
+                </div>
             </div>
         `;
     }).join('');
@@ -96,7 +102,7 @@ function avviaAscoltoLog() {
             activityLogCache.push({ id: docSnap.id, ...docSnap.data() });
         });
 
-        // Log laterale Territori
+        // ATTIVITÀ RECENTI (Territori): log operativo come sempre (conquiste, fazioni, risorse)
         const box = document.getElementById('activity-log-content');
         if (box) {
             box.innerHTML = '';
@@ -105,14 +111,14 @@ function avviaAscoltoLog() {
                 const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 box.innerHTML += `
                     <div class="log-item">
-                        <span class="log-time">[${timeString}]${data.utente ? ' · ' + data.utente : ''}</span><br>
+                        <span class="log-time">[${timeString}]</span><br>
                         ${data.testo}
                     </div>
                 `;
             });
         }
 
-        // Log completo in Gestione
+        // GESTIONE: log utenti (chi ha fatto l'azione)
         const searchVal = document.getElementById('search-admin-log')?.value || '';
         renderAdminActivityLog(searchVal);
     });
