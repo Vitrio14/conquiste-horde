@@ -209,14 +209,30 @@
 
     <div id="login-overlay">
         <div class="login-box glass-panel">
-            
             <img src="logo.png" alt="Aeterna Logo" class="custom-logo" onerror="this.style.display='none'">
             
-            <h1>DATABASE CONQUISTE</h1>
-            <p>Accesso riservato ai membri</p>
-            <input type="email" id="login-email" class="auth-input" placeholder="Email" value="conquiste@vampiri.it">
-            <input type="password" id="login-password" class="auth-input" placeholder="Password">
-            <button id="btn-login" class="auth-btn">Accedi</button>
+            <!-- LOGIN MEMBRO -->
+            <div id="login-membro-box">
+                <h1>DATABASE CONQUISTE</h1>
+                <p>Codice a 4 cifre + Password</p>
+                <input type="text" id="login-codice" class="auth-input" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="••••" style="text-align:center; letter-spacing:8px; font-size:1.3rem;">
+                <input type="password" id="login-password" class="auth-input" placeholder="Password">
+                <button id="btn-login" class="auth-btn">Accedi</button>
+                <p style="margin-top:18px; font-size:0.75rem; color:var(--text-secondary); cursor:pointer; text-transform:uppercase; letter-spacing:1px;" id="link-login-gestore">
+                    Accesso Gestore →
+                </p>
+            </div>
+
+            <!-- LOGIN GESTORE -->
+            <div id="login-gestore-box" style="display:none;">
+                <h1>ACCESSO GESTORE</h1>
+                <p>vampiri.gestore@horde.it</p>
+                <input type="password" id="login-admin-password" class="auth-input" placeholder="Password Gestore">
+                <button id="btn-login-gestore" class="auth-btn">Entra come Gestore</button>
+                <p style="margin-top:18px; font-size:0.75rem; color:var(--text-secondary); cursor:pointer; text-transform:uppercase; letter-spacing:1px;" id="link-login-membro">
+                    ← Torna al login membro
+                </p>
+            </div>
         </div>
     </div>
 
@@ -235,6 +251,7 @@
                 <button class="tab-btn" data-target="tattiche">⚔️ Tattiche e Chat</button>
                 <button class="tab-btn" data-target="piani">🎯 Piani d'Azione</button>
                 <button class="tab-btn" data-target="risorse">🗄️ Database</button>
+                <button class="tab-btn" data-target="gestione" id="tab-gestione" style="display:none;">⚙️ Gestione</button>
             </div>
             <div class="topbar-actions">
                 <button id="btn-logout">Esci</button>
@@ -405,6 +422,47 @@
                         <div class="resources-grid" id="grid-altari"></div>
                     </div>
 
+                </div>
+            </div>
+
+            <div id="view-gestione" class="view-area">
+                <div class="database-container">
+                    <div class="db-header">
+                        <h2>⚙️ Gestione Utenti</h2>
+                    </div>
+                    <div class="piano-form-container glass-panel" style="max-width:800px; margin:0 auto 30px;">
+                        <h3>Crea / Aggiorna Utente</h3>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <input type="text" id="admin-user-nome" class="form-input" placeholder="Nome utente">
+                            <input type="text" id="admin-user-grado" class="form-input" placeholder="Ruolo / Grado (opzionale)">
+                            <input type="text" id="admin-user-codice" class="form-input" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="Codice 4 cifre">
+                            <input type="text" id="admin-user-password" class="form-input" placeholder="Password">
+                        </div>
+                        <p style="font-size:0.85rem; color:var(--text-secondary); margin:15px 0 8px;">Permessi sezioni:</p>
+                        <div id="admin-permessi-box" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:8px; margin-bottom:15px;">
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="perm-check" value="conquiste" checked> 🗺️ Territori</label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="perm-check" value="tattiche" checked> ⚔️ Tattiche e Chat</label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="perm-check" value="piani" checked> 🎯 Piani d'Azione</label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" class="perm-check" value="risorse"> 🗄️ Database</label>
+                        </div>
+                        <button class="auth-btn" id="btn-salva-utente">Salva Utente</button>
+                    </div>
+                    <div class="glass-panel" style="max-width:900px; margin:0 auto; padding:20px;">
+                        <h3 style="margin-bottom:15px;">Utenti registrati</h3>
+                        <div style="overflow-x:auto;">
+                            <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+                                <thead>
+                                    <tr style="border-bottom:1px solid var(--glass-border); text-align:left;">
+                                        <th style="padding:8px;">Nome</th>
+                                        <th style="padding:8px;">Codice</th>
+                                        <th style="padding:8px;">Permessi</th>
+                                        <th style="padding:8px;">Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-utenti-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 

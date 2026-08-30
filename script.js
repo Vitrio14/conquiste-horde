@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, getDocs, deleteDoc, updateDoc, query, orderBy, limit, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, getDocs, deleteDoc, updateDoc, query, orderBy, limit, increment, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // 1. CONFIGURAZIONE FIREBASE
@@ -51,7 +51,7 @@ document.getElementById('modal-btn-confirm').addEventListener('click', () => {
 
 // --- SISTEMA LOG OPERATIVO ---
 async function logActivity(message) {
-    if (!auth.currentUser) return;
+    if (!currentUser && !auth.currentUser) return;
     try {
         await addDoc(collection(db, "activity_log"), {
             testo: message,
@@ -80,49 +80,252 @@ function avviaAscoltoLog() {
     });
 }
 
-// --- PROTEZIONE INTERFACCIA ---
-document.addEventListener('contextmenu', event => event.preventDefault());
+// // --- PROTEZIONE INTERFACCIA ---
+// document.addEventListener('contextmenu', event => event.preventDefault());
 
-document.onkeydown = function(e) {
-    if (e.keyCode == 123) return false; 
-    if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
-    if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
-    if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
-    if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
-};
+// document.onkeydown = function(e) {
+//     if (e.keyCode == 123) return false; 
+//     if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false; 
+//     if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false; 
+//     if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false; 
+//     if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false; 
+// };
 
-setInterval(function() {
-    debugger;
-}, 100);
+// setInterval(function() {
+//     debugger;
+// }, 100);
 
 // UI Login
 const loginOverlay = document.getElementById('login-overlay');
 const appContainer = document.getElementById('app-container');
 
-// GESTIONE SESSIONE
-onAuthStateChanged(auth, (user) => {
-    if (user) {
+// --- AUTH CUSTOM + GESTORE ---
+let currentUser = null; // { nome, codice, permessi:[], isAdmin:false }
+let listenersStarted = false;
+let listaUtenti = [];
+
+const SEZIONI = ['conquiste', 'tattiche', 'piani', 'risorse', 'gestione'];
+
+function applyPermissions() {
+    if (!currentUser) return;
+    const isAdmin = currentUser.isAdmin;
+    const perm = currentUser.permessi || [];
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        const target = btn.getAttribute('data-target');
+        if (target === 'gestione') {
+            btn.style.display = isAdmin ? '' : 'none';
+        } else if (target) {
+            btn.style.display = (isAdmin || perm.includes(target)) ? '' : 'none';
+        }
+    });
+
+    // Se la tab attiva non è più visibile, vai alla prima permessa
+    const activeBtn = document.querySelector('.tab-btn.active');
+    if (activeBtn && activeBtn.style.display === 'none') {
+        const first = document.querySelector('.tab-btn:not([style*="display: none"])');
+        if (first) first.click();
+    }
+}
+
+function startAllListeners() {
+    if (listenersStarted) return;
+    listenersStarted = true;
+    avviaAscoltoDati();
+    avviaAscoltoTattiche();
+    avviaAscoltoChat();
+    avviaAscoltoPiani();
+    avviaAscoltoLog();
+    avviaAscoltoUtenti();
+}
+
+// Switch login UI
+document.getElementById('link-login-gestore')?.addEventListener('click', () => {
+    document.getElementById('login-membro-box').style.display = 'none';
+    document.getElementById('login-gestore-box').style.display = 'block';
+    document.getElementById('login-admin-password')?.focus();
+});
+document.getElementById('link-login-membro')?.addEventListener('click', () => {
+    document.getElementById('login-gestore-box').style.display = 'none';
+    document.getElementById('login-membro-box').style.display = 'block';
+    document.getElementById('login-codice')?.focus();
+});
+
+// Login membro (codice + password)
+document.getElementById('btn-login').addEventListener('click', async () => {
+    const codice = (document.getElementById('login-codice')?.value || '').trim();
+    const password = (document.getElementById('login-password')?.value || '').trim();
+    if (!codice || codice.length !== 4 || !/^\d{4}$/.test(codice)) {
+        return showToast("Inserisci un codice a 4 cifre valido.", "error");
+    }
+    if (!password) return showToast("Inserisci la password.", "error");
+
+    try {
+        const q = query(collection(db, "membri"), where("codice", "==", codice));
+        const snap = await getDocs(q);
+        let found = null;
+        snap.forEach(d => {
+            const data = d.data();
+            if (data.password === password) found = { id: d.id, ...data };
+        });
+        if (!found) return showToast("Codice o password errati.", "error");
+
+        currentUser = {
+            nome: found.nome || found.id,
+            codice: found.codice,
+            permessi: Array.isArray(found.permessi) ? found.permessi : ['conquiste'],
+            isAdmin: false
+        };
         loginOverlay.style.display = 'none';
         appContainer.style.display = 'flex';
-        avviaAscoltoDati();
-        avviaAscoltoTattiche();
-        avviaAscoltoChat();
-        avviaAscoltoPiani(); 
-        avviaAscoltoLog();
-        showToast("Accesso eseguito.", "success");
-    } else {
+        startAllListeners();
+        applyPermissions();
+        showToast(`Benvenuto, ${currentUser.nome}.`, "success");
+        document.getElementById('login-codice').value = '';
+        document.getElementById('login-password').value = '';
+    } catch (e) {
+        console.error(e);
+        showToast("Errore durante l'accesso.", "error");
+    }
+});
+
+// Login gestore (Firebase Auth)
+document.getElementById('btn-login-gestore').addEventListener('click', async () => {
+    const password = (document.getElementById('login-admin-password')?.value || '').trim();
+    if (!password) return showToast("Inserisci la password gestore.", "error");
+    try {
+        await signInWithEmailAndPassword(auth, "vampiri.gestore@horde.it", password);
+        // onAuthStateChanged gestisce il resto
+    } catch (e) {
+        showToast("Credenziali Gestore errate.", "error");
+    }
+});
+
+// Enter key support
+document.getElementById('login-password')?.addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('btn-login').click(); });
+document.getElementById('login-admin-password')?.addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('btn-login-gestore').click(); });
+document.getElementById('login-codice')?.addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('login-password')?.focus(); });
+
+// Firebase Auth solo per gestore
+onAuthStateChanged(auth, (user) => {
+    if (user && user.email === "vampiri.gestore@horde.it") {
+        currentUser = {
+            nome: "GESTORE",
+            isAdmin: true,
+            permessi: SEZIONI
+        };
+        loginOverlay.style.display = 'none';
+        appContainer.style.display = 'flex';
+        startAllListeners();
+        applyPermissions();
+        // Vai a gestione se admin
+        const tabG = document.getElementById('tab-gestione');
+        if (tabG) { tabG.style.display = ''; tabG.click(); }
+        showToast("Accesso Gestore eseguito.", "success");
+    } else if (!user && currentUser && currentUser.isAdmin) {
+        // logout gestore
+        currentUser = null;
         loginOverlay.style.display = 'flex';
         appContainer.style.display = 'none';
     }
 });
 
-document.getElementById('btn-login').addEventListener('click', () => {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    signInWithEmailAndPassword(auth, email, password).catch(() => showToast("Credenziali errate o utente inesistente.", "error"));
+document.getElementById('btn-logout').addEventListener('click', async () => {
+    currentUser = null;
+    try { await signOut(auth); } catch(e) {}
+    loginOverlay.style.display = 'flex';
+    appContainer.style.display = 'none';
+    // reset login UI
+    document.getElementById('login-gestore-box').style.display = 'none';
+    document.getElementById('login-membro-box').style.display = 'block';
+    showToast("Sessione chiusa.", "info");
 });
 
-document.getElementById('btn-logout').addEventListener('click', () => signOut(auth));
+// --- GESTIONE UTENTI (solo admin) ---
+function avviaAscoltoUtenti() {
+    onSnapshot(collection(db, "membri"), (snap) => {
+        listaUtenti = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderAdminUtenti();
+    });
+}
+
+function renderAdminUtenti() {
+    const tbody = document.getElementById('admin-utenti-body');
+    if (!tbody) return;
+    tbody.innerHTML = listaUtenti.map(u => {
+        const perms = Array.isArray(u.permessi) ? u.permessi.join(', ') : '—';
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+            <td style="padding:8px;"><b>${u.nome || u.id}</b></td>
+            <td style="padding:8px; font-family:monospace;">${u.codice || '—'}</td>
+            <td style="padding:8px; font-size:0.75rem;">${perms}</td>
+            <td style="padding:8px;">
+                <button class="btn-status btn-attesa" style="padding:4px 10px; font-size:0.7rem;" data-edit="${u.id}">Modifica</button>
+                <button class="btn-status btn-completata" style="padding:4px 10px; font-size:0.7rem; background:#7f1d1d;" data-del="${u.id}">Elimina</button>
+            </td>
+        </tr>`;
+    }).join('') || '<tr><td colspan="4" style="padding:15px; text-align:center; opacity:0.5;">Nessun utente</td></tr>';
+}
+
+document.getElementById('admin-utenti-body')?.addEventListener('click', async (e) => {
+    const editId = e.target.getAttribute('data-edit');
+    const delId = e.target.getAttribute('data-del');
+    if (editId) {
+        const u = listaUtenti.find(x => x.id === editId);
+        if (!u) return;
+        document.getElementById('admin-user-nome').value = u.nome || u.id;
+        document.getElementById('admin-user-grado').value = u.grado || '';
+        document.getElementById('admin-user-codice').value = u.codice || '';
+        document.getElementById('admin-user-password').value = u.password || '';
+        document.querySelectorAll('.perm-check').forEach(cb => {
+            cb.checked = Array.isArray(u.permessi) && u.permessi.includes(cb.value);
+        });
+        showToast("Dati caricati. Modifica e premi Salva.", "info");
+    }
+    if (delId) {
+        showConfirmModal("Elimina utente", "Vuoi eliminare questo utente?", async () => {
+            await deleteDoc(doc(db, "membri", delId));
+            showToast("Utente eliminato.", "success");
+        });
+    }
+});
+
+document.getElementById('btn-salva-utente')?.addEventListener('click', async () => {
+    if (!currentUser?.isAdmin) return showToast("Solo il gestore può creare utenti.", "error");
+    const nome = document.getElementById('admin-user-nome').value.trim();
+    const grado = document.getElementById('admin-user-grado').value.trim();
+    const codice = document.getElementById('admin-user-codice').value.trim();
+    const password = document.getElementById('admin-user-password').value.trim();
+    if (!nome) return showToast("Nome obbligatorio.", "error");
+    if (codice && (codice.length !== 4 || !/^\d{4}$/.test(codice))) {
+        return showToast("Il codice deve essere di 4 cifre.", "error");
+    }
+    const permessi = [];
+    document.querySelectorAll('.perm-check:checked').forEach(cb => permessi.push(cb.value));
+    if (permessi.length === 0) permessi.push('conquiste');
+
+    // Unicità codice
+    if (codice) {
+        const q = query(collection(db, "membri"), where("codice", "==", codice));
+        const snap = await getDocs(q);
+        let conflict = false;
+        snap.forEach(d => { if (d.id !== nome) conflict = true; });
+        if (conflict) return showToast("Questo codice è già in uso.", "error");
+    }
+
+    const data = { nome, grado, permessi };
+    if (codice) data.codice = codice;
+    if (password) data.password = password;
+
+    await setDoc(doc(db, "membri", nome), data, { merge: true });
+    document.getElementById('admin-user-nome').value = '';
+    document.getElementById('admin-user-grado').value = '';
+    document.getElementById('admin-user-codice').value = '';
+    document.getElementById('admin-user-password').value = '';
+    document.querySelectorAll('.perm-check').forEach(cb => {
+        cb.checked = ['conquiste','tattiche','piani'].includes(cb.value);
+    });
+    showToast("Utente salvato.", "success");
+});
 
 // DATI FAZIONI
 const fazioniDef = [
@@ -186,7 +389,7 @@ document.querySelectorAll('.faction-card').forEach(card => {
 
 async function conquistaTerritorio(cellaId) {
     if (!fazioneAttiva) { showToast("Seleziona una fazione prima di cliccare!", "error"); return; }
-    if (!auth.currentUser) return;
+    if (!currentUser && !auth.currentUser) return;
     
     const oldOwnerId = globalData.territori[cellaId];
     if (oldOwnerId === fazioneAttiva.id) return; // Stessa fazione, nessun cambiamento
@@ -492,10 +695,9 @@ document.getElementById('chat-messages').addEventListener('click', (e) => {
 async function inviaMessaggioChat() {
     const input = document.getElementById('chat-input');
     const testo = input.value.trim();
-    if (!testo || !auth.currentUser) return;
+    if (!testo || (!currentUser && !auth.currentUser)) return;
     
-    const emailParts = auth.currentUser.email.split('@');
-    const senderName = emailParts[0];
+    const senderName = currentUser ? currentUser.nome : (auth.currentUser?.email?.split('@')[0] || 'Admin');
 
     try {
         await addDoc(collection(db, "chat_tattica"), {
@@ -512,7 +714,7 @@ document.getElementById('chat-input').addEventListener('keypress', (e) => {
 
 // --- SISTEMA PIANI D'AZIONE ---
 document.getElementById('btn-salva-piano').addEventListener('click', async () => {
-    if (!auth.currentUser) return;
+    if (!currentUser && !auth.currentUser) return;
     
     const titolo = document.getElementById('piano-titolo').value.trim();
     const target = document.getElementById('piano-target').value.trim();
@@ -640,7 +842,7 @@ fazioniDef.forEach(f => {
 });
 
 document.getElementById('btn-salva-risorse').addEventListener('click', async () => {
-    if (!auth.currentUser) {
+    if (!currentUser && !auth.currentUser) {
         showToast("Azione negata. Utente non autenticato.", "error");
         return;
     }
